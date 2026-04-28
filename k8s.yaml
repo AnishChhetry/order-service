@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-deployment
+spec:
+  replicas: 5 # Let's run 2 copies of your app!
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+      - name: order-container
+        image: order-service:v1
+        # CRITICAL for Minikube: Don't try to download from DockerHub
+        imagePullPolicy: Never 
+        ports:
+        - containerPort: 4000
+        env:
+        - name: PORT
+          value: "4000"
+        - name: SERVICE_NAME
+          value: "order-service"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  type: NodePort
+  selector:
+    app: order-service
+  ports:
+    - protocol: TCP
+      port: 4000        # The port the service exposes
+      targetPort: 4000  # The port your Go app is listening on
